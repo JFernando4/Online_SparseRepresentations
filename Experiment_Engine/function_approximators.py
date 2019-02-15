@@ -111,21 +111,15 @@ class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
-        exploration_frame       int             32                  number of random steps before training starts
         batch_size              int             32                  minibatch size
         training_step_count     int             0                   number of training steps so far
         tnet_update_freq        int             10                  the update frequency of the target network
         """
         assert isinstance(config, Config)
         self.config = config
-        self.exploration_frame = check_attribute_else_default(config, 'exploration_frame', 32)
         self.batch_size = check_attribute_else_default(config, 'batch_size', 32)
         self.training_step_count = check_attribute_else_default(config, 'training_step_count', 0)
         self.tnet_update_freq = check_attribute_else_default(config, 'tnet_update_freq', 10)
-        assert self.exploration_frame >= self.batch_size
-        assert hasattr(config, 'epsilon')
-
-        self.epsilon = 1.0
         self.replay_buffer = ReplayBuffer(config)
         self.target_net = TwoLayerFullyConnected(self.state_dims, h1_dims=self.h1_dims, h2_dims=self.h2_dims,
                                                  output_dims=self.num_actions, gates=gates)
@@ -133,12 +127,11 @@ class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
 
     def update(self, state, action, reward, next_state, next_action, termination):
         self.replay_buffer.store_transition(transition=(state, action, reward, next_state, next_action, termination))
-        self.training_step_count += 1
 
-        if self.training_step_count <= self.exploration_frame:
+        if self.replay_buffer.length < self.batch_size:
             return
 
-        self.epsilon = self.config.epsilon
+        self.training_step_count += 1
         state, action, reward, next_state, next_action, termination = self.replay_buffer.sample(self.batch_size)
         sarsa_zero_return = self.compute_return(reward, next_state, next_action, termination)
         self.optimizer.zero_grad()

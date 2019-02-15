@@ -19,7 +19,6 @@ exp_config.gamma = 1.0
 exp_config.epsilon = 0.1
 exp_config.optim = "adam"
 exp_config.lr = 0.001
-exp_config.exploration_frame = 32
 exp_config.batch_size = 32
 exp_config.training_step_count = 0
 exp_config.buffer_size = 20000
