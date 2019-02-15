@@ -7,7 +7,7 @@ from Experiment_Engine.util import *
 
 class NeuralNetworkFunctionApproximation:
 
-    def __init__(self, config, net_type, summary=None):
+    def __init__(self, config, gates, summary=None):
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
@@ -38,7 +38,7 @@ class NeuralNetworkFunctionApproximation:
         self.h2_dims = 256
         self.cumulative_loss = 0
         self.net = TwoLayerFullyConnected(self.state_dims, h1_dims=self.h1_dims, h2_dims=self.h2_dims,
-                                          output_dims=self.num_actions, network_type=net_type)
+                                          output_dims=self.num_actions, gates=gates)
         self.net.apply(weight_init)
 
         if self.optim == 'sgd': self.optimizer = torch.optim.SGD(self.net.parameters(), lr=self.lr)
@@ -71,8 +71,8 @@ class NeuralNetworkFunctionApproximation:
 
 class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
 
-    def __init__(self, config, net_type, summary=None):
-        super(VanillaNeuralNetwork, self).__init__(config, net_type, summary)
+    def __init__(self, config, gates, summary=None):
+        super(VanillaNeuralNetwork, self).__init__(config, gates, summary)
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
@@ -106,8 +106,8 @@ class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
 
 class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
 
-    def __init__(self, config, net_type, summary=None):
-        super(ReplayBufferNeuralNetwork, self).__init__(config, net_type, summary)
+    def __init__(self, config, gates, summary=None):
+        super(ReplayBufferNeuralNetwork, self).__init__(config, gates, summary)
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
@@ -123,11 +123,12 @@ class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
         self.training_step_count = check_attribute_else_default(config, 'training_step_count', 0)
         self.tnet_update_freq = check_attribute_else_default(config, 'tnet_update_freq', 10)
         assert self.exploration_frame >= self.batch_size
+        assert hasattr(config, 'epsilon')
 
         self.epsilon = 1.0
         self.replay_buffer = ReplayBuffer(config)
         self.target_net = TwoLayerFullyConnected(self.state_dims, h1_dims=self.h1_dims, h2_dims=self.h2_dims,
-                                                 output_dims=self.num_actions, network_type=net_type)
+                                                 output_dims=self.num_actions, gates=gates)
         self.target_net.apply(weight_init)
 
     def update(self, state, action, reward, next_state, next_action, termination):

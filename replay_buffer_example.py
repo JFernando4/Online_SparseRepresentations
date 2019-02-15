@@ -26,7 +26,7 @@ exp_config.buffer_size = 20000
 exp_config.tnet_update_freq = 100
 
 env = Acrobot(config=exp_config, summary=summary)
-fa = ReplayBufferNeuralNetwork(config=exp_config, net_type='relu-relu', summary=summary)
+fa = ReplayBufferNeuralNetwork(config=exp_config, gates='relu-relu', summary=summary)
 rl_agent = Agent(environment=env, function_approximator=fa, config=exp_config, summary=summary)
 
 for i in range(500):

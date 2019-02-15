@@ -6,7 +6,7 @@ import numpy as np
 
 class TwoLayerFullyConnected(nn.Module):
 
-    def __init__(self, input_dims=1, h1_dims=1, h2_dims=1, output_dims=1, network_type='relul-relu'):
+    def __init__(self, input_dims=1, h1_dims=1, h2_dims=1, output_dims=1, gates='relul-relu'):
         super(TwoLayerFullyConnected, self).__init__()
         # input_dims = state dimensions
         # h1_dims, h2_dims = number of hidden neurons in hidden layer 1 and hidden layer 2
@@ -15,30 +15,45 @@ class TwoLayerFullyConnected(nn.Module):
         self.fc2 = nn.Linear(h1_dims, h2_dims, bias=True)
         self.fc3 = nn.Linear(h2_dims, output_dims, bias=True)
 
-        if network_type not in ['relu-relu', 'silu-silu', 'silu-dsilu']:
-            raise ValueError("The network type has to be one of these options: 'relu-relu', 'silu-silu', 'silu-dsilu'")
-        self.network_type = network_type
+        self.gates = gates.split('-')
+        assert len(self.gates) == 2
+        for gate in self.gates:
+            if gate not in ['relu', 'silu', 'dsilu']:
+                raise ValueError("Invalid gate type.")
+        self.gate_dictionary = {'relu': F.relu, 'silu': silu_gate, 'dsilu': dsilu_gate}
+        self.gate1 = self.gate_dictionary[self.gates[0]]
+        self.gate2 = self.gate_dictionary[self.gates[1]]
+        # if network_type not in ['relu-relu', 'silu-silu', 'silu-dsilu']:
+        #     raise ValueError("The network type has to be one of these options: 'relu-relu', 'silu-silu', 'silu-dsilu'")
+        # self.network_type = network_type
 
     def forward(self, x):
         x = to_variable(x)
-        if self.network_type == 'relu-relu':
-            # Let theta_i and b_i be the parameters and the bias of layer 1. Let ^T be the transpose.
-            x = F.relu(self.fc1(x))     # Operation: z_1 = Relu(theta_1^T x + b_1)
-            x = F.relu(self.fc2(x))     # Operation: z_2 = Relu(theta_2^T z_1 + b_2)
-            x = self.fc3(x)             # Operation: z_3 = theta_3^T z_2 + b_3
-        elif self.network_type == 'silu-silu':
-            z1 = self.fc1(x)
-            x = silu_gate(z1)
-            z2 = self.fc2(x)
-            x = silu_gate(z2)
-            x = self.fc3(x)
-        elif self.network_type == 'silu-dsilu':
-            z1 = self.fc1(x)
-            x = silu_gate(z1)
-            z2 = self.fc2(x)
-            x = dsilu_gate(z2)
-            x = self.fc3(x)
-        return x
+        z1 = self.fc1(x)            # Layer 1: z1 = W1^T x + b1
+        x1 = self.gate1(z1)         # Layer 1: x1 = gate1(z1)
+        z2 = self.fc2(x1)           # Layer 2: z2 = W2^T x1 + b2
+        x2 = self.gate2(z2)         # Layer 2: x2 = gate2(z2)
+        x3 = self.fc3(x2)           # Output Layer: x3 = W3^T x2 + b3
+        return x3
+
+        # # if self.network_type == 'relu-relu':
+        # #     # Let theta_i and b_i be the parameters and the bias of layer 1. Let ^T be the transpose.
+        # #     x = F.relu(self.fc1(x))     # Operation: z_1 = Relu(theta_1^T x + b_1)
+        # #     x = F.relu(self.fc2(x))     # Operation: z_2 = Relu(theta_2^T z_1 + b_2)
+        # #     x = self.fc3(x)             # Operation: z_3 = theta_3^T z_2 + b_3
+        # # elif self.network_type == 'silu-silu':
+        # #     z1 = self.fc1(x)
+        # #     x = silu_gate(z1)
+        # #     z2 = self.fc2(x)
+        # #     x = silu_gate(z2)
+        # #     x = self.fc3(x)
+        # # elif self.network_type == 'silu-dsilu':
+        # #     z1 = self.fc1(x)
+        # #     x = silu_gate(z1)
+        # #     z2 = self.fc2(x)
+        # #     x = dsilu_gate(z2)
+        # #     x = self.fc3(x)
+        # return x
 
 
 def to_variable(x):

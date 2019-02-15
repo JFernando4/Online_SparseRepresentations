@@ -23,7 +23,7 @@ exp_config.reg_factor = 0.1
 exp_config.reg_method = 'none'
 
 env = MountainCar(config=exp_config, summary=summary)
-fa = VanillaNeuralNetwork(config=exp_config, net_type='silu-silu', summary=summary)
+fa = VanillaNeuralNetwork(config=exp_config, gates='silu-silu', summary=summary)
 rl_agent = Agent(environment=env, function_approximator=fa, config=exp_config, summary=summary)
 
 for i in range(500):
