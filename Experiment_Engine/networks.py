@@ -23,9 +23,6 @@ class TwoLayerFullyConnected(nn.Module):
         self.gate_dictionary = {'relu': F.relu, 'silu': silu_gate, 'dsilu': dsilu_gate}
         self.gate1 = self.gate_dictionary[self.gates[0]]
         self.gate2 = self.gate_dictionary[self.gates[1]]
-        # if network_type not in ['relu-relu', 'silu-silu', 'silu-dsilu']:
-        #     raise ValueError("The network type has to be one of these options: 'relu-relu', 'silu-silu', 'silu-dsilu'")
-        # self.network_type = network_type
 
     def forward(self, x):
         x = to_variable(x)
@@ -35,25 +32,6 @@ class TwoLayerFullyConnected(nn.Module):
         x2 = self.gate2(z2)         # Layer 2: x2 = gate2(z2)
         x3 = self.fc3(x2)           # Output Layer: x3 = W3^T x2 + b3
         return x3
-
-        # # if self.network_type == 'relu-relu':
-        # #     # Let theta_i and b_i be the parameters and the bias of layer 1. Let ^T be the transpose.
-        # #     x = F.relu(self.fc1(x))     # Operation: z_1 = Relu(theta_1^T x + b_1)
-        # #     x = F.relu(self.fc2(x))     # Operation: z_2 = Relu(theta_2^T z_1 + b_2)
-        # #     x = self.fc3(x)             # Operation: z_3 = theta_3^T z_2 + b_3
-        # # elif self.network_type == 'silu-silu':
-        # #     z1 = self.fc1(x)
-        # #     x = silu_gate(z1)
-        # #     z2 = self.fc2(x)
-        # #     x = silu_gate(z2)
-        # #     x = self.fc3(x)
-        # # elif self.network_type == 'silu-dsilu':
-        # #     z1 = self.fc1(x)
-        # #     x = silu_gate(z1)
-        # #     z2 = self.fc2(x)
-        # #     x = dsilu_gate(z2)
-        # #     x = self.fc3(x)
-        # return x
 
 
 def to_variable(x):
