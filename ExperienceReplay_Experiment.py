@@ -32,7 +32,7 @@ class Experiment:
         self.summary = {}
 
         """ Parameters for the Environment """
-        self.config.max_actions = 5000
+        self.config.max_actions = 2000
         self.config.norm_state = True
 
         """ Parameters for the Function Approximator """
