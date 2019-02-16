@@ -46,9 +46,10 @@ class Experiment:
         self.config.training_step_count = 0
         self.config.buffer_size = self.buffer_size
         self.config.tnet_update_freq = self.tnet_update_Freq
+        self.config.gates = 'relu-relu'
 
         self.env = environment_dictionary[self.environment_name]['class'](config=self.config, summary=self.summary)
-        self.fa = ReplayBufferNeuralNetwork(config=self.config, gates='relu-relu', summary=self.summary)
+        self.fa = ReplayBufferNeuralNetwork(config=self.config, summary=self.summary)
         self.rl_agent = Agent(environment=self.env, function_approximator=self.fa, config=self.config,
                               summary=self.summary)
 

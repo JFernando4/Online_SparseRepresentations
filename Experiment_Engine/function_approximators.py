@@ -71,14 +71,16 @@ class NeuralNetworkFunctionApproximation:
 
 class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
 
-    def __init__(self, config, gates, summary=None):
-        super(VanillaNeuralNetwork, self).__init__(config, gates, summary)
+    def __init__(self, config, summary=None):
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
+        gates                   str             relu-relu           types of gates for the network
         reg_factor              float           0.1                 factor for the regularization method
         reg_method              string          'none'              regularization method. Choices: 'none', 'l1', 'l2'
         """
+        self.gates = check_attribute_else_default(config, 'gates', 'relu-relu')
+        super(VanillaNeuralNetwork, self).__init__(config, gates=self.gates, summary=summary)
         self.reg_factor = check_attribute_else_default(config, 'reg_factor', 0.1)
         self.reg_method = check_attribute_else_default(config, 'reg_method', 'none',
                                                        choices=['none', 'l1', 'l2'])
@@ -106,23 +108,25 @@ class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
 
 class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
 
-    def __init__(self, config, gates, summary=None):
-        super(ReplayBufferNeuralNetwork, self).__init__(config, gates, summary)
+    def __init__(self, config, summary=None):
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
+        gates                   str             relu-relu           types of gates for the network
         batch_size              int             32                  minibatch size
         training_step_count     int             0                   number of training steps so far
         tnet_update_freq        int             10                  the update frequency of the target network
         """
         assert isinstance(config, Config)
         self.config = config
+        self.gates = check_attribute_else_default(self.config, 'gates', 'relu-relu')
+        super(ReplayBufferNeuralNetwork, self).__init__(config, self.gates, summary)
         self.batch_size = check_attribute_else_default(config, 'batch_size', 32)
         self.training_step_count = check_attribute_else_default(config, 'training_step_count', 0)
         self.tnet_update_freq = check_attribute_else_default(config, 'tnet_update_freq', 10)
         self.replay_buffer = ReplayBuffer(config)
         self.target_net = TwoLayerFullyConnected(self.state_dims, h1_dims=self.h1_dims, h2_dims=self.h2_dims,
-                                                 output_dims=self.num_actions, gates=gates)
+                                                 output_dims=self.num_actions, gates=self.gates)
         self.target_net.apply(weight_init)
 
     def update(self, state, action, reward, next_state, next_action, termination):
@@ -140,8 +144,6 @@ class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
         loss.backward()
         self.optimizer.step()
 
-        # if self.training_step_count % 10000 == 0:
-        #     print(prediction)
         if self.store_summary:
             self.cumulative_loss += loss.detach().numpy()
         if (self.training_step_count % self.tnet_update_freq) == 0:
@@ -168,6 +170,7 @@ class ReplayBuffer:
         self.state_dims = check_attribute_else_default(config, 'state_dims', 2)
         self.buffer_size = check_attribute_else_default(config, 'buffer_size', 100)
 
+        """ inner state """
         self.start = 0
         self.length = 0
 
