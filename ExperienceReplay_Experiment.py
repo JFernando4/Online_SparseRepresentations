@@ -97,7 +97,7 @@ if __name__ == '__main__':
     if not os.path.isdir(environment_result_directory):
         os.makedirs(environment_result_directory)
 
-    parameters_name = 'bz' + str(exp_parameters.buffer_size) + "_freq" + str(exp_parameters.tnet_update_freq)
+    parameters_name = 'BufferSize' + str(exp_parameters.buffer_size) + "_Freq" + str(exp_parameters.tnet_update_freq)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
     if not os.path.isdir(parameters_result_directory):
         os.makedirs(parameters_result_directory)
