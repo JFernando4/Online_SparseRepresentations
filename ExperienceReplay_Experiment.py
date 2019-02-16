@@ -93,13 +93,18 @@ if __name__ == '__main__':
     if not os.path.isdir(results_parent_directory):
         os.makedirs(results_parent_directory)
 
-    experiment_result_directory = os.path.join(results_parent_directory, exp_parameters.env)
-    if not os.path.isdir(experiment_result_directory):
-        os.makedirs(experiment_result_directory)
+    environment_result_directory = os.path.join(results_parent_directory, exp_parameters.env, 'experience_replay')
+    if not os.path.isdir(environment_result_directory):
+        os.makedirs(environment_result_directory)
 
-    last_agent_number = len(os.listdir(experiment_result_directory))
+    parameters_name = 'bz' + str(exp_parameters.buffer_size) + "_freq" + str(exp_parameters.tnet_update_freq)
+    parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
+    if not os.path.isdir(parameters_result_directory):
+        os.makedirs(parameters_result_directory)
+
+    last_agent_number = len(os.listdir(parameters_result_directory))
     agent_id = 'agent_' + str(last_agent_number + 1)
-    run_results_directory = os.path.join(experiment_result_directory, agent_id)
+    run_results_directory = os.path.join(parameters_result_directory, agent_id)
     os.makedirs(run_results_directory)
 
     experiment = Experiment(experiment_parameters=exp_parameters, run_results_dir=run_results_directory)
