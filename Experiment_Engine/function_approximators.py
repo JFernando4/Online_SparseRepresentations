@@ -137,10 +137,10 @@ class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
 
         self.training_step_count += 1
         state, action, reward, next_state, next_action, termination = self.replay_buffer.sample(self.batch_size)
-        sarsa_zero_return = self.compute_return(reward, next_state, next_action, termination)
+        qlearning_return = self.compute_return(reward, next_state, next_action, termination)
         self.optimizer.zero_grad()
         prediction = torch.squeeze(self.net(state).gather(1, torch.from_numpy(action).view(-1,1)))
-        loss = (prediction - sarsa_zero_return).pow(2).mean()
+        loss = (prediction - qlearning_return).pow(2).mean()
         loss.backward()
         self.optimizer.step()
 
