@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-echo Enter number of runs:
-read number_of_runs
+number_of_runs=$1
 
 export PYTHONPATH=.
 for (( i=1; i <= $number_of_runs; i++ ))
