@@ -58,7 +58,7 @@ class Experiment:
         for i in range(NUMBER_OF_EPISODES):
             episode_number = i + 1
             self.rl_agent.train(1)
-            if self.verbose:
+            if self.verbose and (((i+1) % 10 == 0) or i == 0):
                 print("Episode Number:", episode_number)
                 print('\tThe cumulative reward was:', self.summary['return_per_episode'][-1])
                 print('\tThe cumulative loss was:', np.round(self.summary['cumulative_loss_per_episode'][-1], 2))
