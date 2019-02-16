@@ -66,8 +66,8 @@ class Experiment:
                 self.save_network_params(suffix=str(episode_number)+'episodes')
         self.save_run_summary()
 
-    def save_network_params(self, suffix='50episodes.pt'):
-        params_path = os.path.join(self.run_results_dir, 'network_weights_'+suffix)
+    def save_network_params(self, suffix='50episodes'):
+        params_path = os.path.join(self.run_results_dir, 'network_weights_' + suffix + '.pt')
         torch.save(self.fa.net.state_dict(), params_path)
 
     def save_run_summary(self):
