@@ -6,7 +6,7 @@ import numpy as np
 
 class TwoLayerFullyConnected(nn.Module):
 
-    def __init__(self, input_dims=1, h1_dims=1, h2_dims=1, output_dims=1, gates='relul-relu'):
+    def __init__(self, input_dims=1, h1_dims=1, h2_dims=1, output_dims=1, gates='relu-relu'):
         super(TwoLayerFullyConnected, self).__init__()
         # input_dims = state dimensions
         # h1_dims, h2_dims = number of hidden neurons in hidden layer 1 and hidden layer 2
@@ -32,6 +32,20 @@ class TwoLayerFullyConnected(nn.Module):
         x2 = self.gate2(z2)         # Layer 2: x2 = gate2(z2)
         x3 = self.fc3(x2)           # Output Layer: x3 = W3^T x2 + b3
         return x3
+
+    def first_layer_neurons(self, x):
+        x = to_variable(x)
+        z1 = self.fc1(x)
+        x1 = self.gate1(z1)
+        return x1
+
+    def second_layer_neurons(self, x):
+        x = to_variable(x)
+        z1 = self.fc1(x)
+        x1 = self.gate1(z1)
+        z2 = self.fc2(x1)
+        x2 = self.gate2(z2)
+        return x2
 
 
 def to_variable(x):
