@@ -91,6 +91,9 @@ class PuddleWorld:
         return self.get_current_state()
 
     def get_current_state(self):
+        '''
+        normalize to [-1, 1]
+        '''
         if self.norm_state:
             s = self.state
             s0 = (s[0] - 0.5) * 2.0
