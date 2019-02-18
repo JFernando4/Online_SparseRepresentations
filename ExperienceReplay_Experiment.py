@@ -17,6 +17,7 @@ class Experiment:
         self.run_results_dir = run_results_dir
         self.tnet_update_Freq = check_attribute_else_default(experiment_parameters, 'tnet_update_freq', 1)
         self.buffer_size = check_attribute_else_default(experiment_parameters, 'buffer_size', 10000)
+        self.learning_rate = check_attribute_else_default(exp_parameters, 'lr', 0.001)
         self.environment_name = check_attribute_else_default(experiment_parameters, 'env', 'mountain_car',
                                                              choices=['mountain_car', 'acrobot', 'puddle_world'])
         self.verbose = experiment_parameters.verbose
@@ -41,7 +42,7 @@ class Experiment:
         self.config.gamma = 1.0
         self.config.epsilon = 0.1
         self.config.optim = "adam"
-        self.config.lr = 0.001
+        self.config.lr = self.learning_rate
         self.config.batch_size = 32
         self.config.training_step_count = 0
         self.config.buffer_size = self.buffer_size
@@ -86,6 +87,7 @@ if __name__ == '__main__':
                                                                                            'puddle_world', 'catcher'])
     parser.add_argument('-tnet_update_freq', action='store', default=1, type=np.int64)
     parser.add_argument('-buffer_size', action='store', default=10000, type=np.int64)
+    parser.add_argument('-lr', action='store', default=0.001, type=np.float64)
     parser.add_argument('-verbose', action='store_true')
     exp_parameters = parser.parse_args()
 
@@ -97,7 +99,8 @@ if __name__ == '__main__':
     if not os.path.isdir(environment_result_directory):
         os.makedirs(environment_result_directory)
 
-    parameters_name = 'BufferSize' + str(exp_parameters.buffer_size) + "_Freq" + str(exp_parameters.tnet_update_freq)
+    parameters_name = 'LearningRate' + str(exp_parameters.lr) + '_BufferSize' + str(exp_parameters.buffer_size) \
+                      + "_Freq" + str(exp_parameters.tnet_update_freq)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
     if not os.path.isdir(parameters_result_directory):
         os.makedirs(parameters_result_directory)
@@ -110,4 +113,9 @@ if __name__ == '__main__':
     experiment = Experiment(experiment_parameters=exp_parameters, run_results_dir=run_results_directory)
     experiment.run()
 
-
+# Parameter Sweep:
+# learning rate = {0.01, 0.004, 0.001, 0.00025, 0.0000625}
+# buffer size = {10k, 20k, 40k}
+# target network update frequency = {10, 50, 100, 200, 400}
+    # We tested a frequency of 1 but in most runs learning was very brittle. In the few runs where the network
+    # actually managed to learn, it often forgot what it had learned after a few episodes.
