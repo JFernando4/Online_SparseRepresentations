@@ -4,7 +4,7 @@ import numpy as np
 from .networks import TwoLayerFullyConnected
 
 
-def compute_activation_map(network, granularity=100, layer=1, sample_size=10):
+def compute_activation_map(network, granularity=100, layer=1):
     """
     :param network: an instance of the class TwoLayerFullyConnected
     :param granularity: how fine should it be the partition on each direction
@@ -28,33 +28,47 @@ def compute_activation_map(network, granularity=100, layer=1, sample_size=10):
             temp_state = np.array((state_partition[i], state_partition[j]), dtype=np.float64)
             activation_maps[:, i, j] = layer_activation(temp_state).detach().numpy()
 
-    activation_map_sample = sample_activation_maps(activation_maps, num_neurons, granularity, sample_size)
-
-    return activation_map_sample
+    return eliminate_dead_neuron_maps(activation_maps)
 
 
-def sample_activation_maps(activation_maps, num_neurons=32, granularity=100, sample_size=10):
+def eliminate_dead_neuron_maps(activation_maps):
     """
-    :param activation_maps: np array of shape (num_neurons, granularity, granularity)
-    :param num_neurons: number of neurons in the nn layer corresponding to the activation map
-    :param granularity: the granularity of the partition of the state space in each dimension
-    :param sample_size
-    :return: random sample of activation maps of non-dead neurons
+    :param activation_maps: the activation maps of each neuron as computed by the function compute_activation_map.
+                            Shape of activation_maps: (num_neurons, granularity, granularity)
+                                num_neurons: number of neurons in the layer
+                                granularity: number of partitions of each dimension of the state space
+    :return: a numpy array of type np.float64 with dimensions (num_of_alive_neurons, granularity, granularity)
+             which correspond to the activation maps of the alive neurons
     """
-    sampled_activation_maps = np.zeros((sample_size, granularity, granularity), dtype=np.float64)
-    indices = np.arange(num_neurons, dtype=np.int64)
-    sampled_count = 0
-    rejected_count = 0
-    while sampled_count != sample_size:
-        temp_sampled_idx = np.random.choice(indices, size=1)
-        indices = np.delete(indices, np.where(temp_sampled_idx[0] == temp_sampled_idx))
-        if np.sum(activation_maps[temp_sampled_idx]) == 0:
-            rejected_count += 1
-        else:
-            sampled_activation_maps[sampled_count] = activation_maps[temp_sampled_idx]
-            sampled_count += 1
+    assert isinstance(activation_maps, np.ndarray)
+    assert len(activation_maps.shape) == 3
+    indices = []
+    number_of_neurons = activation_maps.shape[0]
+    for i in range(number_of_neurons):
+        total_activation = np.sum(activation_maps[i])
+        if total_activation != 0:
+            indices.append(i)
+    indices = np.array(indices, dtype=np.int64)
+    alive_neuron_maps = activation_maps[indices, :, :]
+    return alive_neuron_maps
 
-        if (rejected_count + sampled_count) == num_neurons:
-            print("There were too many dead neurons to fill the sample. Returning zeros instead.")
-            break
-    return sampled_activation_maps
+
+def sample_activation_maps(activation_maps, sample_size=10):
+    alive_neuron_maps = eliminate_dead_neuron_maps(activation_maps)
+    if sample_size > alive_neuron_maps.shape[0]:
+        print("Not enough alive neurons for a sample size of " + str(sample_size) + ".")
+        return alive_neuron_maps
+    else:
+        sampled_indices = np.random.choice(alive_neuron_maps.shape[0], size=sample_size, replace=False)
+        return alive_neuron_maps[sampled_indices, :, :]
+
+
+def compute_instance_sparsity(activation_maps):
+    assert isinstance(activation_maps, np.ndarray)
+    sample_size = activation_maps.shape[0]
+    positive_activations = np.int64((activation_maps > 0))
+    active_neurons = np.sum(positive_activations, axis=0)
+    percentage_active_neurons = (active_neurons / sample_size) * 100
+    return active_neurons, percentage_active_neurons.flatten()
+
+
