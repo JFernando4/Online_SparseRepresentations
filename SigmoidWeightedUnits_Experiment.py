@@ -89,8 +89,9 @@ if __name__ == '__main__':
     parser.add_argument('-env', action='store', default='mountain_car', type=str, choices=['mountain_car', 'acrobot',
                                                                                            'puddle_world'])
     parser.add_argument('-architecture', action='store', default='SS', type=str, choices=['SS', 'SD', 'DS', 'DD'])
-    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.01, 0.004, 0.001, 0.00025,
-                                                                                        0.0000625])
+    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.01, 0.004, 0.001, 0.0005,
+                                                                                        0.00025, 0.000125, 0.0000625,
+                                                                                        0.00003125])
     parser.add_argument('-verbose', action='store_true')
     exp_parameters = parser.parse_args()
 
@@ -118,5 +119,5 @@ if __name__ == '__main__':
     experiment.run()
 
 # Parameter Sweep:
-# learning rate = {0.01, 0.004, 0.001, 0.00025, 0.0000625}
+# learning rate = {0.01, 0.004, 0.001, 0.0005, 0.00025, 0.000125, 0.0000625, 0.00003125}
 # architectures = {'silu-silu', 'silu-dsilu', 'dsilu-silu', 'dsilu-dsilu'}
