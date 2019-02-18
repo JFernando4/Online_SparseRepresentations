@@ -6,13 +6,13 @@ import os
 
 
 # Confidence Interval for averages
-def compute_tdist_confidence_interval(sample_mean, sample_std, proportion, sample_size):
+def compute_tdist_confidence_interval(sample_mean, sample_std, alpha_proportion, sample_size):
     if sample_size <= 1:
         return None, None, None
 
     dof = sample_size - 1
     t_dist = t(df=dof)  # from scipy.stats
-    tdist_factor = t_dist.ppf(1 - proportion/2)
+    tdist_factor = t_dist.ppf(1 - alpha_proportion / 2)
 
     sqrt_inverse_sample_size = np.sqrt(1 / sample_size)
     me = sample_std * tdist_factor * sqrt_inverse_sample_size
