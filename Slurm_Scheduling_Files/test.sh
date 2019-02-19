@@ -2,7 +2,7 @@
 #SBATCH --mail-user=jfhernan@ualberta.ca
 #SBATCH --mail-type=ALL
 #SBATCH --array=1-2%1
-#SBATCH --time=1:00:00
+#SBATCH --time=0:10:00
 #SBATCH --account=def-sutton
 #SBATCH --mem=1000M
 #SBATCH --job-name=test
