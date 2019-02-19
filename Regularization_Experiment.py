@@ -22,6 +22,7 @@ class Experiment:
                                                           choices=[0.0, 0.1, 0.01, 0.001])
         self.layer2_factor = check_attribute_else_default(experiment_parameters, 'layer2_factor', 0.01,
                                                           choices=[0.0, 0.1, 0.01, 0.001])
+        self.reg = check_attribute_else_default(experiment_parameters, 'reg', 'l1', choices=['l1', 'l2'])
         self.verbose = experiment_parameters.verbose
 
         environment_dictionary = {
@@ -44,7 +45,7 @@ class Experiment:
         self.config.epsilon = 0.1
         self.config.optim = "adam"
         self.config.lr = self.learning_rate
-        self.config.reg_method = 'none'
+        self.config.reg_method = self.reg
         self.config.reg_factor = (self.layer1_factor, self.layer2_factor)
 
         self.env = environment_dictionary[self.environment_name]['class'](config=self.config, summary=self.summary)
@@ -83,14 +84,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-env', action='store', default='mountain_car', type=str, choices=['mountain_car', 'acrobot',
                                                                                            'puddle_world'])
+    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.01, 0.004, 0.001, 0.0005,
+                                                                                        0.00025, 0.000125, 0.0000625,
+                                                                                        0.00003125])
     parser.add_argument('-reg', action='store', default='l1', type=str)
     parser.add_argument('-layer1_factor', action='store', default=0.01, type=np.float64,
                         choices=[0.0, 0.1, 0.01, 0.001])
     parser.add_argument('-layer2_factor', action='store', default=0.01, type=np.float64,
                         choices=[0.0, 0.1, 0.01, 0.001])
-    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.01, 0.004, 0.001, 0.0005,
-                                                                                        0.00025, 0.000125, 0.0000625,
-                                                                                        0.00003125])
     parser.add_argument('-verbose', action='store_true')
     exp_parameters = parser.parse_args()
 
