@@ -8,7 +8,10 @@
 #SBATCH --job-name=test
 #SBATCH --output=./outputs/test-%A_%a.out
 
-source ./bin/activate
-export PYTHONPATH=.
-python3 ./ExperienceReplay_Experiment.py -buffer_size 10000 -tnet_update_freq 10 -lr 0.001 -env mountain_car
-deactivate
+echo "the buffer size is: $BF"
+echo "the target network update frequency is: $LR"
+
+#source ./bin/activate
+#export PYTHONPATH=.
+#python3 ./ExperienceReplay_Experiment.py -buffer_size $BS -tnet_update_freq $FREQ -lr $LR -env $ENV
+#deactivate
