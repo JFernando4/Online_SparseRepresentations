@@ -199,7 +199,7 @@ class MethodResults:
     def append(self, param_comb_results):
         # Appends parameter combination results to the all_param_comb list.
         # Additionally, it compares the new item to the parameter combinations results in top_param_comb and updates
-        # the list according to the 95% CI's
+        # the list according to the 95% CI's.
         assert isinstance(param_comb_results, ParameterCombinationSummary)
         self.all_param_comb.append(param_comb_results)
         append = True
