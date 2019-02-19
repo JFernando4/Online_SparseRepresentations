@@ -6,7 +6,7 @@ from Experiment_Engine.util import *
 
 
 class NeuralNetworkFunctionApproximation:
-
+    """ Parent class for all the neural networks """
     def __init__(self, config, gates, summary=None):
         """
         Parameters in config:
@@ -70,7 +70,10 @@ class NeuralNetworkFunctionApproximation:
 
 
 class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
-
+    """
+    Vanilla neural network with the option of selecting gate functions and applying l1 or l2 regularization to all the
+    parameters of the network.
+    """
     def __init__(self, config, summary=None):
         """
         Parameters in config:
@@ -100,6 +103,49 @@ class VanillaNeuralNetwork(NeuralNetworkFunctionApproximation):
             for name, param in self.net.named_parameters():
                 reg_loss += torch.sum(self.reg_function(param))
         loss += self.reg_factor * reg_loss
+        loss.backward()
+        self.optimizer.step()
+        if self.store_summary:
+            self.cumulative_loss += loss.detach().numpy()
+
+
+class RegPerLayerNeuralNetwork(NeuralNetworkFunctionApproximation):
+    """
+    Neural network with regularization and the option of setting different regularization factors for
+    the parameters of each layer
+    """
+    def __init__(self, config, summary=None):
+        """
+        Parameters in config:
+        Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
+        reg_factor              float           (0.1, 0.1)          factor for the regularization method per layer
+        reg_method              string          'none'              regularization method. Choices: 'none', 'l1', 'l2'
+        """
+        super(RegPerLayerNeuralNetwork, self).__init__(config, gates='relu-relu', summary=summary)
+        self.reg_factor = check_attribute_else_default(config, 'reg_factor', (0.1, 0.1, 0.1))
+        self.reg_method = check_attribute_else_default(config, 'reg_method', 'l1',
+                                                       choices=['l1', 'l2'])
+        if self.reg_method == 'l1':
+            self.reg_function = torch.abs
+        else:
+            self.reg_function = lambda z: torch.pow(z, 2)
+
+    def update(self, state, action, reward, next_state, next_action, termination):
+        # Performs an update to the parameters of the nn. It assumes action, reward, next_action, and termination are
+        #  a single number / boolean.
+        sarsa_zero_return = self.compute_return(reward, next_state, next_action, termination)
+        self.optimizer.zero_grad()
+        loss = (self.net(state)[action] - sarsa_zero_return) ** 2
+        reg_loss = 0
+        for name, param in self.net.named_parameters():
+            if '1' in name:     # parameters of the first layer
+                factor = self.reg_factor[0]
+            elif '2' in name:
+                factor = self.reg_factor[1]
+            else:
+                factor = 1.0
+            reg_loss += factor * torch.sum(self.reg_function(param))
+        loss += reg_loss
         loss.backward()
         self.optimizer.step()
         if self.store_summary:
