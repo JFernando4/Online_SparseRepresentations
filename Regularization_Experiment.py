@@ -128,3 +128,4 @@ if __name__ == '__main__':
 # learning rate = {0.004, 0.001, 0.00025}
 # reg_factor_layer1 = {0, 0.1, 0.01, 0.001}
 # reg_factor_layer2 = {0, 0.1, 0.01, 0.001}
+# olayer_factor = {0, 0.1, 0.01, 0.001}
