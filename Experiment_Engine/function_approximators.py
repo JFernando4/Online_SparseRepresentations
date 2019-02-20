@@ -118,7 +118,7 @@ class RegPerLayerNeuralNetwork(NeuralNetworkFunctionApproximation):
         """
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
-        reg_factor              float           (0.1, 0.1)          factor for the regularization method per layer
+        reg_factor              tuple           (0.1, 0.1, 0.1)     factor for the regularization method per layer
         reg_method              string          'none'              regularization method. Choices: 'none', 'l1', 'l2'
         """
         super(RegPerLayerNeuralNetwork, self).__init__(config, gates='relu-relu', summary=summary)
@@ -143,7 +143,7 @@ class RegPerLayerNeuralNetwork(NeuralNetworkFunctionApproximation):
             elif '2' in name:
                 factor = self.reg_factor[1]
             else:
-                factor = 1.0
+                factor = self.reg_factor[2]
             reg_loss += factor * torch.sum(self.reg_function(param))
         loss += reg_loss
         loss.backward()
