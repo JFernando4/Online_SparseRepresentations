@@ -19,8 +19,8 @@ exp_config.gamma = 1.0
 exp_config.epsilon = 0.1
 exp_config.optim = 'adam'
 exp_config.lr = 0.001
-exp_config.reg_factor = (0.001, 0.1)
-exp_config.reg_method = 'l2'
+exp_config.reg_factor = (0.001, 0.1, 0.001)
+exp_config.reg_method = 'l1'
 
 env = MountainCar(config=exp_config, summary=summary)
 fa = RegPerLayerNeuralNetwork(config=exp_config, summary=summary)
