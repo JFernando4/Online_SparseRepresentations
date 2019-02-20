@@ -22,6 +22,8 @@ class Experiment:
                                                           choices=[0.0, 0.1, 0.01, 0.001])
         self.layer2_factor = check_attribute_else_default(experiment_parameters, 'layer2_factor', 0.01,
                                                           choices=[0.0, 0.1, 0.01, 0.001])
+        self.olayer_factor = check_attribute_else_default(experiment_parameters, 'olayer_factor', 0.01,
+                                                          choices=[0.0, 0.1, 0.01, 0.001])
         self.reg = check_attribute_else_default(experiment_parameters, 'reg', 'l1', choices=['l1', 'l2'])
         self.verbose = experiment_parameters.verbose
 
@@ -46,7 +48,7 @@ class Experiment:
         self.config.optim = "adam"
         self.config.lr = self.learning_rate
         self.config.reg_method = self.reg
-        self.config.reg_factor = (self.layer1_factor, self.layer2_factor)
+        self.config.reg_factor = (self.layer1_factor, self.layer2_factor, self.olayer_factor)
 
         self.env = environment_dictionary[self.environment_name]['class'](config=self.config, summary=self.summary)
         self.fa = RegPerLayerNeuralNetwork(config=self.config, summary=self.summary)
@@ -84,13 +86,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-env', action='store', default='mountain_car', type=str, choices=['mountain_car', 'acrobot',
                                                                                            'puddle_world'])
-    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.01, 0.004, 0.001, 0.0005,
-                                                                                        0.00025, 0.000125, 0.0000625,
-                                                                                        0.00003125])
+    parser.add_argument('-lr', action='store', default=0.001, type=np.float64, choices=[0.004, 0.001, 0.00025])
     parser.add_argument('-reg', action='store', default='l1', type=str)
     parser.add_argument('-layer1_factor', action='store', default=0.01, type=np.float64,
                         choices=[0.0, 0.1, 0.01, 0.001])
     parser.add_argument('-layer2_factor', action='store', default=0.01, type=np.float64,
+                        choices=[0.0, 0.1, 0.01, 0.001])
+    parser.add_argument('-olayer_factor', action='store', default=0.01, type=np.float64,
                         choices=[0.0, 0.1, 0.01, 0.001])
     parser.add_argument('-verbose', action='store_true')
     exp_parameters = parser.parse_args()
@@ -105,8 +107,10 @@ if __name__ == '__main__':
     if not os.path.isdir(environment_result_directory):
         os.makedirs(environment_result_directory)
     """ Directory specific to the parameters"""
-    parameters_name = 'LearningRate' + str(exp_parameters.lr) + '_Layer1Factor' + str(exp_parameters.layer1_factor) \
-                      + '_Layer2Factor' + str(exp_parameters.layer2_factor)
+    parameters_name = 'LearningRate' + str(exp_parameters.lr) \
+                      + '_Layer1Factor' + str(exp_parameters.layer1_factor) \
+                      + '_Layer2Factor' + str(exp_parameters.layer2_factor) \
+                      + '_OutputLayerFactor' + str(exp_parameters.olayer_factor)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
     if not os.path.isdir(parameters_result_directory):
         os.makedirs(parameters_result_directory)
