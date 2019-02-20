@@ -140,9 +140,9 @@ class RegPerLayerNeuralNetwork(NeuralNetworkFunctionApproximation):
         for name, param in self.net.named_parameters():
             if '1' in name:     # parameters of the first layer
                 factor = self.reg_factor[0]
-            elif '2' in name:
+            elif '2' in name:   # parameters of the second layer
                 factor = self.reg_factor[1]
-            else:
+            else:               # parameters of the output layer
                 factor = self.reg_factor[2]
             reg_loss += factor * torch.sum(self.reg_function(param))
         loss += reg_loss
@@ -150,6 +150,53 @@ class RegPerLayerNeuralNetwork(NeuralNetworkFunctionApproximation):
         self.optimizer.step()
         if self.store_summary:
             self.cumulative_loss += loss.detach().numpy()
+
+
+class DistRegNeuralNetwork(NeuralNetworkFunctionApproximation):
+    """
+    Neural network with distributional regularizers. This is the implementation of the ReLu + SKL network from:
+    "The Utility of Sparse Representations for Control in Reinforcement Learning"
+        - Vincent Liu, Raksha Kumaraswamy, Lei Le, and Martha White
+     """
+    def __init__(self, config, summary=None):
+        super(DistRegNeuralNetwork, self).__init__(config, gates='relu-relu', summary=summary)
+        """
+        Parameters in config:
+        Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
+        reg_factor              float           0.1                 
+        beta                    float           0.1                 max activation probability
+        ma_alpha                float           0.1                 decay rate parameter for the moving average
+        """
+        self.reg_factor = check_attribute_else_default(config, 'reg_factor', 0.1)
+        self.beta = check_attribute_else_default(config, 'beta', 0.1)
+        self.ma_alpha = check_attribute_else_default(config, 'ma_alpha', 0.1)
+        self.moving_average_layer1 = torch.zeros(self.h1_dims, dtype=torch.float32, requires_grad=True)
+        self.moving_average_layer2 = torch.zeros(self.h2_dims, dtype=torch.float32, requires_grad=True)
+
+    def update(self, state, action, reward, next_state, next_action, termination):
+        # Performs an update to the parameters of the nn. It assumes action, reward, next_action, and termination are
+        #  a single number / boolean.
+        sarsa_zero_return = self.compute_return(reward, next_state, next_action, termination)
+        self.optimizer.zero_grad()
+        x1, x2, x3 = self.net.forward(state, return_activations=True)
+        loss = (x3[action] - sarsa_zero_return) ** 2
+        layer1_moving_average = (1 - self.ma_alpha) * self.moving_average_layer1 + self.ma_alpha * x1
+        layer2_moving_average = (1-self.ma_alpha) * self.moving_average_layer2 + self.ma_alpha * x2
+        layer1_kld_derivative = self.kld_derivative(layer1_moving_average)
+        layer2_kld_derivative = self.kld_derivative(layer2_moving_average)
+        loss += self.reg_factor * (layer1_kld_derivative + layer2_kld_derivative)
+        loss.backward()
+
+        self.optimizer.step()
+        if self.store_summary:
+            self.cumulative_loss += loss.detach().numpy()
+
+    def kld_derivative(self, beta_hats):
+        positive_beta_hats = beta_hats[beta_hats > 0]
+        first_term = 1 / positive_beta_hats
+        second_term = torch.pow(first_term, 2) * self.beta
+        kld_derivative = torch.sum((first_term - second_term) * (positive_beta_hats > self.beta).float())
+        return kld_derivative
 
 
 class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
