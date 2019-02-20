@@ -24,14 +24,17 @@ class TwoLayerFullyConnected(nn.Module):
         self.gate1 = self.gate_dictionary[self.gates[0]]
         self.gate2 = self.gate_dictionary[self.gates[1]]
 
-    def forward(self, x):
+    def forward(self, x, return_activations=False):
         x = to_variable(x)
         z1 = self.fc1(x)            # Layer 1: z1 = W1^T x + b1
         x1 = self.gate1(z1)         # Layer 1: x1 = gate1(z1)
         z2 = self.fc2(x1)           # Layer 2: z2 = W2^T x1 + b2
         x2 = self.gate2(z2)         # Layer 2: x2 = gate2(z2)
         x3 = self.fc3(x2)           # Output Layer: x3 = W3^T x2 + b3
-        return x3
+        if not return_activations:
+            return x3
+        else:
+            return x1, x2, x3
 
     def first_layer_neurons(self, x):
         x = to_variable(x)
