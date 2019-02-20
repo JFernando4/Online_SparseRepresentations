@@ -167,7 +167,7 @@ class ParameterCombinationSummary:
                     idx += 1
             if idx > len(sorted_runs):
                 performances.insert(0, temp_performance)
-                sorted_runs.insert(idx, self.runs[i])
+                sorted_runs.insert(0, self.runs[i])
         self.runs = sorted_runs
 
     def print_summary(self, round_dec=2, sep=''):
