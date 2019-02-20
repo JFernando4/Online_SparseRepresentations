@@ -12,5 +12,5 @@ do
 done
 
 # Parameter Sweep:
-# learning rate = {0.01, 0.004, 0.001, 0.0005, 0.00025, 0.000125, 0.0000625, 0.00003125}
+# learning rate = {0.01, 0.004, 0.001, 0.0005, 0.00025, 0.000125, 0.0000625}
 # architectures = {'silu-silu', 'silu-dsilu', 'dsilu-silu', 'dsilu-dsilu'}
