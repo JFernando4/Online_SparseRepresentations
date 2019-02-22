@@ -103,12 +103,12 @@ if __name__ == '__main__':
     """ This part creates the directory: working_dir/Results/environment/method/parameter_combination/agent_number"""
     # General results directory
     results_parent_directory = os.path.join(os.getcwd(), 'Results')
-    if not os.path.isdir(results_parent_directory):
+    if not os.path.exists(results_parent_directory):
         os.makedirs(results_parent_directory)
     # Directory specific to the environment and the method
     environment_result_directory = os.path.join(results_parent_directory, exp_parameters.env,
                                                 'distributional_regularizers')
-    if not os.path.isdir(environment_result_directory):
+    if not os.path.exists(environment_result_directory):
         os.makedirs(environment_result_directory)
     # Directory specific to the parameters
     parameters_name = 'LearningRate' + str(exp_parameters.lr) \
@@ -116,7 +116,7 @@ if __name__ == '__main__':
                       + '_Beta' + str(exp_parameters.beta) \
                       + '_MovingAvgAlpha' + str(exp_parameters.ma_alpha)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
-    if not os.path.isdir(parameters_result_directory):
+    if not os.path.exists(parameters_result_directory):
         os.makedirs(parameters_result_directory)
     # Directory specific to the run
     last_agent_number = len(os.listdir(parameters_result_directory))

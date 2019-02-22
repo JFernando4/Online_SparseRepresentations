@@ -92,17 +92,17 @@ if __name__ == '__main__':
     exp_parameters = parser.parse_args()
 
     results_parent_directory = os.path.join(os.getcwd(), 'Results')
-    if not os.path.isdir(results_parent_directory):
+    if not os.path.exists(results_parent_directory):
         os.makedirs(results_parent_directory)
 
     environment_result_directory = os.path.join(results_parent_directory, exp_parameters.env, 'experience_replay')
-    if not os.path.isdir(environment_result_directory):
+    if not os.path.exists(environment_result_directory):
         os.makedirs(environment_result_directory)
 
     parameters_name = 'LearningRate' + str(exp_parameters.lr) + '_BufferSize' + str(exp_parameters.buffer_size) \
                       + "_Freq" + str(exp_parameters.tnet_update_freq)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
-    if not os.path.isdir(parameters_result_directory):
+    if not os.path.exists(parameters_result_directory):
         os.makedirs(parameters_result_directory)
 
     last_agent_number = len(os.listdir(parameters_result_directory))
