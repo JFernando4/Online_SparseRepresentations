@@ -100,12 +100,12 @@ if __name__ == '__main__':
 
     """ General results directory """
     results_parent_directory = os.path.join(os.getcwd(), 'Results')
-    if not os.path.isdir(results_parent_directory):
+    if not os.path.exists(results_parent_directory):
         os.makedirs(results_parent_directory)
     """ Directory specific to the environment and the method """
     environment_result_directory = os.path.join(results_parent_directory, exp_parameters.env,
                                                 exp_parameters.reg + '_regularization')
-    if not os.path.isdir(environment_result_directory):
+    if not os.path.exists(environment_result_directory):
         os.makedirs(environment_result_directory)
     """ Directory specific to the parameters"""
     parameters_name = 'LearningRate' + str(exp_parameters.lr) \
@@ -113,7 +113,7 @@ if __name__ == '__main__':
                       + '_Layer2Factor' + str(exp_parameters.layer2_factor) \
                       + '_OutputLayerFactor' + str(exp_parameters.olayer_factor)
     parameters_result_directory = os.path.join(environment_result_directory, parameters_name)
-    if not os.path.isdir(parameters_result_directory):
+    if not os.path.exists(parameters_result_directory):
         os.makedirs(parameters_result_directory)
     """ Directory specific to the run """
     agent_id = 'agent_' + str(exp_parameters.run_number)
