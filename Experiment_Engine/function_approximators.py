@@ -4,7 +4,6 @@ import torch
 from Experiment_Engine.networks import TwoLayerFullyConnected, weight_init
 from Experiment_Engine.util import *
 
-
 class NeuralNetworkFunctionApproximation:
     """ Parent class for all the neural networks """
     def __init__(self, config, gates, summary=None):
@@ -164,39 +163,58 @@ class DistRegNeuralNetwork(NeuralNetworkFunctionApproximation):
         Parameters in config:
         Name:                   Type:           Default:            Description: (Omitted when self-explanatory)
         reg_factor              float           0.1                 
-        beta                    float           0.1                 max activation probability
+        beta                    float           0.1                 average max activation
         ma_alpha                float           0.1                 decay rate parameter for the moving average
+        use_gamma               bool            False               whether to use a gamma distribution instead of beta
         """
         self.reg_factor = check_attribute_else_default(config, 'reg_factor', 0.1)
         self.beta = check_attribute_else_default(config, 'beta', 0.1)
         self.ma_alpha = check_attribute_else_default(config, 'ma_alpha', 0.1)
-        self.moving_average_layer1 = torch.zeros(self.h1_dims, dtype=torch.float32, requires_grad=True)
-        self.moving_average_layer2 = torch.zeros(self.h2_dims, dtype=torch.float32, requires_grad=True)
+        self.use_gamma = check_attribute_else_default(config, 'use_gamma', False)
+        self.moving_average_layer1 = torch.zeros(self.h1_dims, dtype=torch.float32, requires_grad=False)
+        self.moving_average_layer2 = torch.zeros(self.h2_dims, dtype=torch.float32, requires_grad=False)
 
     def update(self, state, action, reward, next_state, next_action, termination):
-        # Performs an update to the parameters of the nn. It assumes action, reward, next_action, and termination are
-        #  a single number / boolean.
+        # this function assumes action, reward, next_action, and termination are a single number / boolean.
         sarsa_zero_return = self.compute_return(reward, next_state, next_action, termination)
         self.optimizer.zero_grad()
         x1, x2, x3 = self.net.forward(state, return_activations=True)
         loss = (x3[action] - sarsa_zero_return) ** 2
-        layer1_moving_average = (1 - self.ma_alpha) * self.moving_average_layer1 + self.ma_alpha * x1
-        layer2_moving_average = (1-self.ma_alpha) * self.moving_average_layer2 + self.ma_alpha * x2
-        layer1_kld_derivative = self.kld_derivative(layer1_moving_average)
-        layer2_kld_derivative = self.kld_derivative(layer2_moving_average)
-        loss += self.reg_factor * (layer1_kld_derivative + layer2_kld_derivative)
-        loss.backward()
-
-        self.optimizer.step()
+        if self.use_gamma:
+            layer1_average = x1.mean()
+            layer2_average = x2.mean()
+            kld_layer1 = self.kld(layer1_average)
+            kld_layer2 = self.kld(layer2_average)
+            loss += self.reg_factor * (kld_layer1 + kld_layer2)
+            loss.backward()
+            self.optimizer.step()
+        else:
+            layer1_moving_average = (1 - self.ma_alpha) * self.moving_average_layer1 + self.ma_alpha * x1
+            layer2_moving_average = (1 - self.ma_alpha) * self.moving_average_layer2 + self.ma_alpha * x2
+            kld_layer1 = self.kld(layer1_moving_average)
+            kld_layer2 = self.kld(layer2_moving_average)
+            loss += self.reg_factor * (kld_layer1 + kld_layer2)
+            loss.backward()
+            self.optimizer.step()
+            self.moving_average_layer1 = (1 - self.ma_alpha) * self.moving_average_layer1 + self.ma_alpha * x1.detach()
+            self.moving_average_layer2 = (1 - self.ma_alpha) * self.moving_average_layer2 + self.ma_alpha * x2.detach()
         if self.store_summary:
             self.cumulative_loss += loss.detach().numpy()
 
     def kld_derivative(self, beta_hats):
-        positive_beta_hats = beta_hats[beta_hats > 0]
+        # Note: you can use either kld_derivative or kld. Both results in the same gradient.
+        positive_beta_hats = beta_hats[beta_hats > self.beta]
         first_term = 1 / positive_beta_hats
         second_term = torch.pow(first_term, 2) * self.beta
-        kld_derivative = torch.sum((first_term - second_term) * (positive_beta_hats > self.beta).float())
+        kld_derivative = torch.sum((first_term - second_term))
         return kld_derivative
+
+    def kld(self, beta_hats):
+        positive_beta_hats = beta_hats[beta_hats > self.beta]
+        # the original kl divergence is: log(beta_hat) + (beta / beta_hat) - log(beta) - 1
+        # however, since beta doesn't depend on the parameters of the network, omitting the term -log(beta) - 1 doesn't
+        # have any effect on the gradient.
+        return torch.sum(torch.log(positive_beta_hats) + (self.beta / positive_beta_hats))
 
 
 class ReplayBufferNeuralNetwork(NeuralNetworkFunctionApproximation):
