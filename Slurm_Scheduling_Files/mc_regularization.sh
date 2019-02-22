@@ -10,7 +10,7 @@
 
 source ./bin/activate
 export PYTHONPATH=.
-python3 ./Regularization_Experiment.py -env mountain_car -reg $REG -lr $LR -layer1_factor $L1F -layer2_factor $L2F -olayer_factor $LoF
+python3 ./Regularization_Experiment.py -env mountain_car -reg $REG -lr $LR -layer1_factor $L1F -layer2_factor $L2F -olayer_factor $LoF -verbose
 deactivate
 
 # Parameter Sweep:
