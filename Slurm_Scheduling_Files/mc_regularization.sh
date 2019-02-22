@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --mail-user=jfhernan@ualberta.ca
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-30%1
+#SBATCH --array=1-10
 #SBATCH --time=3:00:00
 #SBATCH --account=def-sutton
 #SBATCH --mem=1000M
@@ -10,7 +10,8 @@
 
 source ./bin/activate
 export PYTHONPATH=.
-python3 ./Regularization_Experiment.py -env mountain_car -reg $REG -lr $LR -layer1_factor $L1F -layer2_factor $L2F -olayer_factor $LoF -verbose
+python3 ./Regularization_Experiment.py -env mountain_car -reg $REG -lr $LR -layer1_factor $L1F -layer2_factor $L2F -olayer_factor $LoF -verbose \
+-run_number $SLURM_ARRAY_TASK_ID
 deactivate
 
 # Parameter Sweep:
