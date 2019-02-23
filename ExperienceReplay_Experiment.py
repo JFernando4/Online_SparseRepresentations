@@ -83,6 +83,7 @@ class Experiment:
 if __name__ == '__main__':
     """ Experiment Parameters """
     parser = argparse.ArgumentParser()
+    parser.add_argument('-run_number', action='store', default=1, type=int)
     parser.add_argument('-env', action='store', default='mountain_car', type=str, choices=['mountain_car', 'acrobot',
                                                                                            'puddle_world', 'catcher'])
     parser.add_argument('-tnet_update_freq', action='store', default=1, type=np.int64)
@@ -105,8 +106,7 @@ if __name__ == '__main__':
     if not os.path.exists(parameters_result_directory):
         os.makedirs(parameters_result_directory)
 
-    last_agent_number = len(os.listdir(parameters_result_directory))
-    agent_id = 'agent_' + str(last_agent_number + 1)
+    agent_id = 'agent_' + str(exp_parameters.run_number)
     run_results_directory = os.path.join(parameters_result_directory, agent_id)
     os.makedirs(run_results_directory)
 
